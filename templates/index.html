@@ -1,71 +1,45 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Security Scanner</title>
+    <title>Security Scanner Dashboard</title>
     <style>
-        body {
-            background: #0f172a;
-            color: #e2e8f0;
-            font-family: Arial;
-            text-align: center;
-        }
-
-        input, button {
-            padding: 10px;
-            margin: 10px;
-            border-radius: 8px;
-            border: none;
-        }
-
-        button {
-            background: #22c55e;
-            color: white;
-            cursor: pointer;
-        }
-
-        .result {
-            margin-top: 20px;
-            padding: 20px;
-            background: #1e293b;
-            border-radius: 10px;
-        }
+        body { font-family: Arial, sans-serif; margin: 40px; }
+        h1 { color: #2c3e50; }
+        input, button { padding: 8px; margin: 5px; }
+        .result { margin-top: 20px; padding: 15px; border: 1px solid #ddd; background: #f9f9f9; }
+        table { border-collapse: collapse; width: 100%; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        th { background-color: #f2f2f2; }
     </style>
 </head>
 <body>
+    <h1>Security Scanner Dashboard</h1>
+    <form method="post">
+        <label>IP Address:</label>
+        <input type="text" name="host" required placeholder="127.0.0.1">
+        <label>Ports (comma-separated):</label>
+        <input type="text" name="ports" required placeholder="22,80">
+        <button type="submit">Scan</button>
+    </form>
 
-<h1>🚀 Security Scanner</h1>
-
-<input id="host" placeholder="IP Address (e.g. 127.0.0.1)">
-<input id="ports" placeholder="Ports (e.g. 22,80)">
-<br>
-<button onclick="scan()">Scan</button>
-
-<div id="output"></div>
-
-<script>
-async function scan() {
-    let host = document.getElementById("host").value;
-    let ports = document.getElementById("ports").value;
-
-    let res = await fetch(`/scan?host=${host}&ports=${ports}`);
-    let data = await res.json();
-
-    let html = "<div class='result'>";
-    
-    data.result.forEach(r => {
-        html += `
-            <p><b>Port:</b> ${r.port}</p>
-            <p><b>Service:</b> ${r.service.product}</p>
-            <p><b>AI:</b> ${r.ai}</p>
-            <hr>
-        `;
-    });
-
-    html += "</div>";
-
-    document.getElementById("output").innerHTML = html;
-}
-</script>
-
+    {% if result %}
+    <div class="result">
+        <h2>Scan Results:</h2>
+        <table>
+            <tr>
+                <th>Port</th>
+                <th>Service</th>
+                <th>AI Risk</th>
+            </tr>
+            {% for r in result %}
+            <tr>
+                <td>{{ r.port }}</td>
+                <td>{{ r.service }}</td>
+                <td>{{ r.ai }}</td>
+            </tr>
+            {% endfor %}
+        </table>
+    </div>
+    {% endif %}
 </body>
 </html>
