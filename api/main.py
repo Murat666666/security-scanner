@@ -35,3 +35,7 @@ async def scan(host: str, ports: str):
 @app.get("/history")
 def history():
     return {"scans": get_scans()}
+
+@app.get("/")
+def test():
+    return {"status": "working"}
