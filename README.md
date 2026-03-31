@@ -44,3 +44,25 @@ http://127.0.0.1:8000
 Example scan:
 
 http://127.0.0.1:8000/scan?host=127.0.0.1&ports=22,80
+
+## 🐧 CLI Usage
+
+Run from terminal:
+
+```bash
+python cli/cli.py 127.0.0.1 22,80
+
+Example output:
+
+Port: 22
+Service: openssh
+AI: ⚠️ High risk!
+
+## 🧠 Architecture
+
+- API (FastAPI)
+- Scanner Engine (Async)
+- CVE Integration (NVD)
+- AI Analysis Layer
+- CLI Interface
+- Web Dashboard
