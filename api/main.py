@@ -3,6 +3,16 @@ from fastapi.responses import HTMLResponse
 from core.scanner import scan_target
 from core.db import init_db, save_scan, get_scans
 
+from fastapi.responses import HTMLResponse
+from fastapi.templating import Jinja2Templates
+from fastapi import Request
+
+templates = Jinja2Templates(directory="templates")
+
+@app.get("/", response_class=HTMLResponse)
+async def home(request: Request):
+    return templates.TemplateResponse("index.html", {"request": request})
+
 app = FastAPI()
 init_db()
 

@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Security Scanner</title>
+    <style>
+        body {
+            background: #0f172a;
+            color: #e2e8f0;
+            font-family: Arial;
+            text-align: center;
+        }
+
+        input, button {
+            padding: 10px;
+            margin: 10px;
+            border-radius: 8px;
+            border: none;
+        }
+
+        button {
+            background: #22c55e;
+            color: white;
+            cursor: pointer;
+        }
+
+        .result {
+            margin-top: 20px;
+            padding: 20px;
+            background: #1e293b;
+            border-radius: 10px;
+        }
+    </style>
+</head>
+<body>
+
+<h1>🚀 Security Scanner</h1>
+
+<input id="host" placeholder="IP Address (e.g. 127.0.0.1)">
+<input id="ports" placeholder="Ports (e.g. 22,80)">
+<br>
+<button onclick="scan()">Scan</button>
+
+<div id="output"></div>
+
+<script>
+async function scan() {
+    let host = document.getElementById("host").value;
+    let ports = document.getElementById("ports").value;
+
+    let res = await fetch(`/scan?host=${host}&ports=${ports}`);
+    let data = await res.json();
+
+    let html = "<div class='result'>";
+    
+    data.result.forEach(r => {
+        html += `
+            <p><b>Port:</b> ${r.port}</p>
+            <p><b>Service:</b> ${r.service.product}</p>
+            <p><b>AI:</b> ${r.ai}</p>
+            <hr>
+        `;
+    });
+
+    html += "</div>";
+
+    document.getElementById("output").innerHTML = html;
+}
+</script>
+
+</body>
+</html>
