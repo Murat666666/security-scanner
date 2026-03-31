@@ -66,3 +66,6 @@ AI: ⚠️ High risk!
 - AI Analysis Layer
 - CLI Interface
 - Web Dashboard
+
+Render Server URL : https://security-scanner-murat.onrender.com
+Usage : https://security-scanner-murat.onrender.com/scan?host=127.0.0.1&ports=22,80
