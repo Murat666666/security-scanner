@@ -1,6 +1,46 @@
-\# Security Scanner
+# 🛡️ Security Scanner Platform
 
+![Python](https://img.shields.io/badge/Python-3.11-blue)
+![FastAPI](https://img.shields.io/badge/FastAPI-Async-green)
+![Status](https://img.shields.io/badge/Status-Active-success)
 
+A modern **AI-powered vulnerability scanner** with web dashboard, CVE integration and scan history.
 
-Async vulnerability scanner with AI analysis.
+---
 
+## 🚀 Features
+
+- ⚡ Async port scanning
+- 🔍 Banner grabbing
+- 🧠 Service detection
+- 🛡️ CVE integration (NVD API)
+- 🤖 AI-based vulnerability analysis
+- 📊 Web dashboard
+- 🗄️ Scan history
+- ⚔️ Diff comparison
+
+---
+
+## 🖥️ Demo
+
+Coming soon...
+
+---
+
+## ⚙️ Installation
+
+```bash
+git clone https://github.com/Murat666666/security-scanner.git
+cd security-scanner
+pip install -r requirements.txt
+uvicorn api.main:app --reload
+
+🌐 Usage
+
+Open in browser:
+
+http://127.0.0.1:8000
+
+Example scan:
+
+http://127.0.0.1:8000/scan?host=127.0.0.1&ports=22,80
