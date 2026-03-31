@@ -1,41 +1,43 @@
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, Request, Form
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
-
 from core.scanner import scan_target
 from core.db import init_db, save_scan, get_scans
 
-import os
+import asyncio
 
 app = FastAPI()
-
-# ✅ doğru path (Render uyumlu)
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-templates = Jinja2Templates(directory=os.path.join(BASE_DIR, "templates"))
-
 init_db()
 
+templates = Jinja2Templates(directory="templates")
 
-# ✅ TEK homepage (HTML)
+
 @app.get("/", response_class=HTMLResponse)
 async def home(request: Request):
-    return templates.TemplateResponse("index.html", {"request": request})
+    # Ana sayfa, formu gösterir
+    return templates.TemplateResponse("index.html", {"request": request, "result": None})
 
 
-@app.get("/scan")
-async def scan(host: str, ports: str):
-    port_list = [int(p) for p in ports.split(",")]
+@app.post("/", response_class=HTMLResponse)
+async def run_scan(
+    request: Request,
+    host: str = Form(...),
+    ports: str = Form(...)
+):
+    # Formdan gelen IP ve portları al
+    port_list = [int(p.strip()) for p in ports.split(",") if p.strip().isdigit()]
+    
+    # Scan işlemini çalıştır
     result = await scan_target(host, port_list)
-
+    
+    # Sonucu veritabanına kaydet
     save_scan(host, ports, result)
+    
+    # Template ile sonucu gönder
+    return templates.TemplateResponse("index.html", {"request": request, "result": result})
+    
 
-    return {"result": result}
-
-
-@app.get("/history")
-def history():
-    return {"scans": get_scans()}
-
-@app.get("/")
-def test():
-    return {"status": "working"}
+@app.get("/history", response_class=HTMLResponse)
+def history(request: Request):
+    scans = get_scans()
+    return templates.TemplateResponse("history.html", {"request": request, "scans": scans})
