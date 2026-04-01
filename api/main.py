@@ -58,4 +58,8 @@ async def scan_web(host: str = Form(...), ports: str = Form(...)):
         <br><a href="/">⬅ Back</a>
     </body>
     </html>
+HEAD
     """
+
+    """
+660491d (fix: stable web UI without template)
