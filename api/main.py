@@ -1,43 +1,61 @@
 from fastapi import FastAPI, Request, Form
 from fastapi.responses import HTMLResponse
-from fastapi.templating import Jinja2Templates
-from core.scanner import scan_target
-from core.db import init_db, save_scan, get_scans
 
-import asyncio
+from core.scanner import scan_target
+from core.db import init_db, save_scan
 
 app = FastAPI()
 init_db()
 
-templates = Jinja2Templates(directory="templates")
-
 
 @app.get("/", response_class=HTMLResponse)
-async def home(request: Request):
-    # Ana sayfa, formu gösterir
-    return templates.TemplateResponse("index.html", {"request": request, "result": None})
+def home():
+    return """
+    <html>
+    <head>
+        <title>Security Scanner</title>
+    </head>
+    <body style="font-family: Arial; padding:40px;">
+        <h1>🚀 Security Scanner</h1>
+
+        <form method="post">
+            <input name="host" placeholder="IP (127.0.0.1)" required>
+            <input name="ports" placeholder="Ports (22,80)" required>
+            <button type="submit">Scan</button>
+        </form>
+    </body>
+    </html>
+    """
 
 
 @app.post("/", response_class=HTMLResponse)
-async def run_scan(
-    request: Request,
-    host: str = Form(...),
-    ports: str = Form(...)
-):
-    # Formdan gelen IP ve portları al
-    port_list = [int(p.strip()) for p in ports.split(",") if p.strip().isdigit()]
-    
-    # Scan işlemini çalıştır
-    result = await scan_target(host, port_list)
-    
-    # Sonucu veritabanına kaydet
-    save_scan(host, ports, result)
-    
-    # Template ile sonucu gönder
-    return templates.TemplateResponse("index.html", {"request": request, "result": result})
-    
+async def scan_web(host: str = Form(...), ports: str = Form(...)):
+    port_list = [int(p) for p in ports.split(",") if p.strip().isdigit()]
 
-@app.get("/history", response_class=HTMLResponse)
-def history(request: Request):
-    scans = get_scans()
-    return templates.TemplateResponse("history.html", {"request": request, "scans": scans})
+    result = await scan_target(host, port_list)
+
+    save_scan(host, ports, result)
+
+    # sonucu HTML olarak göster
+    rows = ""
+    for r in result:
+        rows += f"<tr><td>{r['port']}</td><td>{r['service']}</td><td>{r['ai']}</td></tr>"
+
+    return f"""
+    <html>
+    <body style="font-family: Arial; padding:40px;">
+        <h1>Scan Result</h1>
+
+        <table border="1" cellpadding="10">
+            <tr>
+                <th>Port</th>
+                <th>Service</th>
+                <th>AI</th>
+            </tr>
+            {rows}
+        </table>
+
+        <br><a href="/">⬅ Back</a>
+    </body>
+    </html>
+    """
