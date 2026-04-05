@@ -1,25 +1,19 @@
+import asyncio
 import sys
-import requests
+from core.scanner import scan_target
 
-def main():
-    if len(sys.argv) < 3:
-        print("Usage: python cli.py <host> <ports>")
-        return
 
+async def main():
     host = sys.argv[1]
-    ports = sys.argv[2]
+    ports = [int(p) for p in sys.argv[2].split(",")]
 
-    url = f"http://127.0.0.1:8000/scan?host={host}&ports={ports}"
+    result = await scan_target(host, ports)
 
-    res = requests.get(url)
-    data = res.json()
-
-    for r in data["result"]:
-        print(f"Port: {r['port']}")
-        print(f"Service: {r['service']['product']}")
+    for r in result:
+        print(f"\nPort: {r['port']}")
+        print(f"Service: {r['service']}")
         print(f"AI: {r['ai']}")
-        print("-" * 30)
 
 
 if __name__ == "__main__":
-    main()
+    asyncio.run(main())
