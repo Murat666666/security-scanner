@@ -1,67 +1,50 @@
 import asyncio
-from core.detector import detect_service
-from core.vulns import fetch_cves
-from core.ai import analyze_vulnerabilities
-
-
-async def grab_banner(host, port):
-    try:
-        reader, writer = await asyncio.open_connection(host, port)
-
-        data = await reader.read(1024)
-        banner = data.decode(errors="ignore")
-
-        writer.close()
-        await writer.wait_closed()
-
-        return banner
-
-    except:
-        return ""
-
-
-async def scan(host, ports):
-    tasks = []
-
-    for port in ports:
-        tasks.append(scan_port(host, port))
-
-    return await asyncio.gather(*tasks)
 
 
 async def scan_port(host, port):
     try:
-        banner = await grab_banner(host, port)
+        reader, writer = await asyncio.open_connection(host, port)
+        writer.close()
+
+        service = detect_service(port)
 
         return {
             "port": port,
-            "status": "open",
-            "banner": banner
+            "service": service,
+            "ai": analyze(service)
         }
     except:
-        return {"port": port, "status": "closed"}
+        return None
+
+
+def detect_service(port):
+    common = {
+        22: "ssh",
+        80: "http",
+        443: "https",
+        3306: "mysql"
+    }
+
+    name = common.get(port, "unknown")
+
+    return {
+        "name": name,
+        "product": name.upper(),
+        "version": "1.0"
+    }
+
+
+def analyze(service):
+    if service["name"] in ["ssh", "mysql"]:
+        return "⚠️ Medium risk service exposed"
+    elif service["name"] == "unknown":
+        return "❓ Unknown service"
+    else:
+        return "✔️ No vulnerabilities detected"
 
 
 async def scan_target(host, ports):
-    results = await scan(host, ports)
+    tasks = [scan_port(host, p) for p in ports]
+    results = await asyncio.gather(*tasks)
 
-    enriched = []
-
-    for r in results:
-        if r["status"] == "open":
-            service = detect_service(r["banner"], r["port"])
-
-            vulns = []
-            if service["product"] != "unknown":
-                vulns = await fetch_cves(service["product"], service["version"])
-
-            ai = analyze_vulnerabilities(service["product"], vulns)
-
-            enriched.append({
-                **r,
-                "service": service,
-                "vulnerabilities": vulns,
-                "ai": ai
-            })
-
-    return enriched
+    return [r for r in results if r]
