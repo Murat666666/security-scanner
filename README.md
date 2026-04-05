@@ -69,3 +69,29 @@ AI: ⚠️ High risk!
 
 Render Server URL : https://security-scanner-murat.onrender.com
 Usage : https://security-scanner-murat.onrender.com/scan?host=127.0.0.1&ports=22,80
+
+# Security Scanner
+
+AI-powered vulnerability scanner with web UI and CLI.
+
+## Run locally
+
+
+pip install -r requirements.txt
+uvicorn api.main:app --reload
+
+
+Open:
+http://127.0.0.1:8000
+
+## CLI
+
+
+python cli/cli.py 127.0.0.1 22,80
+
+
+## Deploy (Render)
+
+Start command:
+
+uvicorn api.main:app --host 0.0.0.0 --port $PORT
