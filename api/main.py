@@ -53,7 +53,7 @@ def home():
             <h1>🛡️ Security Scanner</h1>
 
             <form method="post">
-                <input name="host" placeholder="IP (127.0.0.1)" required><br>
+                <input name="host" placeholder="IP or domain (scanme.nmap.org)" required><br>
                 <input name="ports" placeholder="Ports (22,80,443)" required><br>
                 <button type="submit">🚀 Scan</button>
             </form>
@@ -66,87 +66,103 @@ def home():
 
 @app.post("/", response_class=HTMLResponse)
 async def scan_web(host: str = Form(...), ports: str = Form(...)):
-    port_list = [int(p) for p in ports.split(",") if p.strip().isdigit()]
+    try:
+        port_list = [int(p.strip()) for p in ports.split(",") if p.strip().isdigit()]
 
-    result = await scan_target(host, port_list)
-    save_scan(host, ports, result)
+        result = await scan_target(host, port_list)
+        save_scan(host, ports, result)
 
-    rows = ""
+        rows = ""
 
-    for r in result:
-        service = r.get("service", {})
-        service_name = service.get("name", "unknown")
-        product = service.get("product", "")
-        version = service.get("version", "")
+        for r in result:
+            service = r.get("service", {})
 
-        service_text = f"{service_name} {product} {version}".strip()
+            service_text = f"{service.get('name','')} {service.get('product','')} {service.get('version','')}".strip()
 
-        ai = r.get("ai", "")
+            ai = r.get("ai", "")
+            vulns_count = len(r.get("vulns", []))
 
-        if "High" in ai:
-            ai_class = "danger"
-        elif "risk" in ai:
-            ai_class = "warn"
-        else:
-            ai_class = "safe"
+            if "CRITICAL" in ai:
+                ai_class = "danger"
+            elif "HIGH" in ai:
+                ai_class = "warn"
+            else:
+                ai_class = "safe"
 
-        rows += f"""
+            rows += f"""
+            <tr>
+                <td>{r['port']}</td>
+                <td>{service_text}</td>
+                <td>{vulns_count}</td>
+                <td class="{ai_class}">{ai}</td>
+            </tr>
+            """
+
+        return f"""
+        <html>
+        <head>
+            <style>
+                body {{
+                    background-color: #020617;
+                    color: white;
+                    font-family: Arial;
+                    padding: 40px;
+                    text-align: center;
+                }}
+                table {{
+                    margin: auto;
+                    border-collapse: collapse;
+                    width: 70%;
+                }}
+                th, td {{
+                    padding: 12px;
+                    border: 1px solid #334155;
+                }}
+                th {{
+                    background-color: #1e293b;
+                }}
+                tr:nth-child(even) {{
+                    background-color: #0f172a;
+                }}
+                .safe {{ color: #22c55e; }}
+                .warn {{ color: #facc15; }}
+                .danger {{ color: #ef4444; }}
+                a {{
+                    color: #38bdf8;
+                    text-decoration: none;
+                }}
+            </style>
+        </head>
+        <body>
+
+        <h1>📊 Scan Result</h1>
+
+        <table>
         <tr>
-            <td>{r['port']}</td>
-            <td>{service_text}</td>
-            <td class="{ai_class}">{ai}</td>
+            <th>Port</th>
+            <th>Service</th>
+            <th>Vulnerabilities</th>
+            <th>Status</th>
         </tr>
+
+        {rows}
+
+        </table>
+
+        <br><br>
+        <a href="/">⬅ Back</a>
+
+        </body>
+        </html>
         """
 
-    return f"""
-    <html>
-    <head>
-        <style>
-            body {{
-                background-color: #020617;
-                color: white;
-                font-family: Arial;
-                padding: 40px;
-                text-align: center;
-            }}
-            table {{
-                margin: auto;
-                border-collapse: collapse;
-                width: 60%;
-            }}
-            th, td {{
-                padding: 12px;
-                border: 1px solid #334155;
-            }}
-            th {{
-                background-color: #1e293b;
-            }}
-            tr:nth-child(even) {{
-                background-color: #0f172a;
-            }}
-            .safe {{ color: #22c55e; }}
-            .warn {{ color: #facc15; }}
-            .danger {{ color: #ef4444; }}
-        </style>
-    </head>
-    <body>
-
-    <h1>📊 Scan Result</h1>
-
-    <table>
-    <tr>
-        <th>Port</th>
-        <th>Service</th>
-        <th>Status</th>
-    </tr>
-
-    {rows}
-
-    </table>
-
-    <br><br>
-    <a href="/" style="color:#38bdf8;">⬅ Back</a>
-
-    </body>
-    </html>
-    """
+    except Exception as e:
+        return f"""
+        <html>
+        <body style="background:#020617;color:white;font-family:Arial;text-align:center;padding:50px;">
+            <h1>❌ Error</h1>
+            <p>{str(e)}</p>
+            <br><a href="/" style="color:#38bdf8;">⬅ Back</a>
+        </body>
+        </html>
+        """
