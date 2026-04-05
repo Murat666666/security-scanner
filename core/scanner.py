@@ -1,46 +1,43 @@
 import asyncio
+from core.detector import detect_service
+from core.vulns import fetch_cves
+from core.ai import analyze_vulnerabilities
+
+
+async def grab_banner(reader, writer):
+    try:
+        writer.write(b"HEAD / HTTP/1.0\r\n\r\n")
+        await writer.drain()
+        data = await asyncio.wait_for(reader.read(1024), timeout=2)
+        return data.decode(errors="ignore")
+    except:
+        return ""
 
 
 async def scan_port(host, port):
     try:
-        reader, writer = await asyncio.open_connection(host, port)
+        reader, writer = await asyncio.wait_for(
+            asyncio.open_connection(host, port), timeout=3
+        )
+
+        banner = await grab_banner(reader, writer)
         writer.close()
 
-        service = detect_service(port)
+        service = detect_service(banner, port)
+
+        vulns = await fetch_cves(service["product"], service["version"])
+
+        ai = analyze_vulnerabilities(service, vulns)
 
         return {
             "port": port,
             "service": service,
-            "ai": analyze(service)
+            "vulns": vulns,
+            "ai": ai
         }
+
     except:
         return None
-
-
-def detect_service(port):
-    common = {
-        22: "ssh",
-        80: "http",
-        443: "https",
-        3306: "mysql"
-    }
-
-    name = common.get(port, "unknown")
-
-    return {
-        "name": name,
-        "product": name.upper(),
-        "version": "1.0"
-    }
-
-
-def analyze(service):
-    if service["name"] in ["ssh", "mysql"]:
-        return "⚠️ Medium risk service exposed"
-    elif service["name"] == "unknown":
-        return "❓ Unknown service"
-    else:
-        return "✔️ No vulnerabilities detected"
 
 
 async def scan_target(host, ports):
