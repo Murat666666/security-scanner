@@ -89,13 +89,6 @@ http://127.0.0.1:8000
 
 python cli/cli.py 127.0.0.1 22,80
 
-<img width="1914" height="961" alt="Screenshot 2026-04-05 222019" src="https://github.com/user-attachments/assets/cb3426f8-f40f-4fa0-ab09-f1e4b723baa4" />
-
-<img width="1919" height="970" alt="Screenshot 2026-04-05 222043" src="https://github.com/user-attachments/assets/d063a45e-9bce-4629-9eb5-987a6b05f058" />
-
-
-
-
 
 ## Deploy (Render)
 
